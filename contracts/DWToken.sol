@@ -1,25 +1,40 @@
 // SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.17;
-
+pragma solidity ^0.8.0;
 import "./IERC20.sol";
 
-contract ERC20 is IERC20 {
+contract DWToken is IERC20 {
     uint public totalSupply;
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
-    string public name = "DWToken";
-    string public symbol = "DW";
-    uint8 public decimals = 18;
+    string public name;
+    string public symbol;
+    uint8 public decimals;
 
-    function transfer(address recipient, uint amount) external returns (bool) {
+    constructor() {
+        name = "DWToken";
+        symbol = "DW";
+        decimals = 1;
+        totalSupply = 1000 * (10 ** uint256(decimals));
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+
+    function transfer(
+        address recipient,
+        uint amount
+    ) external override returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+
         balanceOf[msg.sender] -= amount;
         balanceOf[recipient] += amount;
         emit Transfer(msg.sender, recipient, amount);
         return true;
     }
 
-    function approve(address spender, uint amount) external returns (bool) {
+    function approve(
+        address spender,
+        uint amount
+    ) external override returns (bool) {
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
@@ -29,7 +44,13 @@ contract ERC20 is IERC20 {
         address sender,
         address recipient,
         uint amount
-    ) external returns (bool) {
+    ) external override returns (bool) {
+        require(balanceOf[sender] >= amount, "Insufficient balance");
+        require(
+            allowance[sender][msg.sender] >= amount,
+            "Not allowed to transfer this amount"
+        );
+
         allowance[sender][msg.sender] -= amount;
         balanceOf[sender] -= amount;
         balanceOf[recipient] += amount;
@@ -44,6 +65,8 @@ contract ERC20 is IERC20 {
     }
 
     function burn(uint amount) external {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+
         balanceOf[msg.sender] -= amount;
         totalSupply -= amount;
         emit Transfer(msg.sender, address(0), amount);

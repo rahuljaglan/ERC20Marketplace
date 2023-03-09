@@ -2,13 +2,14 @@
 
 pragma solidity ^0.8.17;
 
-import "./DWtoken.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "./DWToken.sol";
 
-contract ERC20Marketplace {
-    ERC20 private tokenContract;
+contract ERC20Marketplace is Ownable {
+    DWToken private tokenContract;
     uint256 private tokenPrice = 0.005 ether;
 
-    constructor(ERC20 _tokenContract) {
+    constructor(DWToken _tokenContract) {
         tokenContract = _tokenContract;
     }
 
